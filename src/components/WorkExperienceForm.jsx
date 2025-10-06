@@ -52,7 +52,6 @@ function WorkExperienceForm({ data = [], setData, isActive, onShow }) {
     const errors = validateExperience(currentExperience);
 
     if (Object.keys(errors).length > 0) {
-      console.log("Validation errors:", errors);
       setErrors(errors);
       return;
     }
