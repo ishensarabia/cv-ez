@@ -2,64 +2,128 @@ import { useState } from "react";
 import FormAccordion from "./FormAccordion";
 import Input from "./Input";
 import TextCanvas from "./TextCanvas";
+import { BriefcaseBusinessIcon } from "lucide-react";
 
-function WorkExperienceForm({ data, setData, isActive, onShow }) {
-  const [formState, setFormState] = useState(
-    data || {
-      company: "",
-      position: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-    }
-  );
+const emptyExperience = {
+  company: "",
+  position: "",
+  startDate: "",
+  endDate: "",
+  description: "",
+};
+
+function WorkExperienceForm({ data = [], setData, isActive, onShow }) {
+  const [currentExperience, setCurrentExperience] = useState(emptyExperience);
+  const [errors, setErrors] = useState({});
 
   function handleChange(field) {
     return function (e) {
-      const newState = { ...formState, [field]: e.target.value };
-      setFormState(newState);
-      setData(newState);
+      setCurrentExperience((prev) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
+      // clear error for the field on change
+      if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: null }));
+      }
     };
+  }
+
+  function validateExperience(experience) {
+    const newErrors = {};
+    if (!experience.company.trim()) {
+      newErrors.company = "Company name is required";
+    }
+    if (!experience.position.trim()) {
+      newErrors.position = "Position is required";
+    }
+    if (!experience.startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+    if (!experience.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+    return newErrors;
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    const errors = validateExperience(currentExperience);
+
+    if (Object.keys(errors).length > 0) {
+      console.log("Validation errors:", errors);
+      setErrors(errors);
+      return;
+    }
+    setData([...data, currentExperience]);
+    setCurrentExperience(emptyExperience);
+    setErrors({});
   }
 
   return (
     <FormAccordion
       label="Work Experience"
-      _icon={() => <i className="fas fa-briefcase"></i>}
+      _icon={BriefcaseBusinessIcon}
       isActive={isActive}
       onShow={onShow}
     >
-      <div className="work-experience-form">
+      <form onSubmit={handleSubmit} className="work-experience-form" noValidate>
         <Input
           label="Company"
           type="text"
-          value={formState.company}
+          value={currentExperience.company}
           onChange={handleChange("company")}
+          error={errors.company}
+          required
         />
         <Input
           label="Position"
           type="text"
-          value={formState.position}
+          value={currentExperience.position}
           onChange={handleChange("position")}
+          error={errors.position}
+          required
         />
         <Input
           label="Start Date"
           type="date"
-          value={formState.startDate}
+          value={currentExperience.startDate}
           onChange={handleChange("startDate")}
+          error={errors.startDate}
+          required
         />
         <Input
           label="End Date"
           type="date"
-          value={formState.endDate}
+          value={currentExperience.endDate}
           onChange={handleChange("endDate")}
+          error={errors.endDate}
         />
         <TextCanvas
           label="Description"
-          value={formState.description}
+          value={currentExperience.description}
           onChange={handleChange("description")}
+          placeholder="Describe your role and achievements"
+          error={errors.description}
+          required
         />
-      </div>
+        <button type="submit" className="add-button">
+          Add Experience
+        </button>
+      </form>
+
+      {data.length > 0 && (
+        <div className="experiences-list">
+          {data.map((experience, index) => (
+            <div key={index} className="experience-item">
+              <h3>{experience.company}</h3>
+              <p>{experience.position}</p>
+              {/* Add edit/delete functionality here */}
+            </div>
+          ))}
+        </div>
+      )}
     </FormAccordion>
   );
 }
