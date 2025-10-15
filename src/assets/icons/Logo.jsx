@@ -1,5 +1,5 @@
 import React from "react";
-import logoImage from "../../assets/icons/CV-EZ_icon.png";
+import logoImage from "/logo.png";
 
 const Logo = ({
   vairant = "default", // default, dark
@@ -18,6 +18,7 @@ const Logo = ({
   };
 
   const logoSrc = logoImage;
+  const imageSize = typeof size === 'number' ? size : sizeMap[size] || sizeMap.md
 
   return (
     <img
