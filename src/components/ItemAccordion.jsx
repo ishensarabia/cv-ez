@@ -1,8 +1,23 @@
 import { useState } from "react";
-import { ChevronDown, DeleteIcon, Edit2Icon, CheckIcon, XIcon } from "lucide-react";
+import {
+  ChevronDown,
+  DeleteIcon,
+  Edit2Icon,
+  CheckIcon,
+  XIcon,
+} from "lucide-react";
 
-function ItemAccordion({ label, children, isActive, onShow, onDelete, onEdit }) {
+function ItemAccordion({
+  label,
+  children,
+  isActive,
+  onShow,
+  onDelete,
+  onEdit,
+}) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingContent, setIsEditingContent] = useState(false);
+
   const [editedLabel, setEditedLabel] = useState(label);
   let accordionState = isActive ? "expanded" : "collapsed";
 
@@ -46,38 +61,6 @@ function ItemAccordion({ label, children, isActive, onShow, onDelete, onEdit }) 
           </div>
         </button>
         <div className="action-buttons">
-          {isEditing ? (
-            <>
-              <button
-                className="save-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSave();
-                }}
-              >
-                <CheckIcon size={16} />
-              </button>
-              <button
-                className="cancel-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCancel();
-                }}
-              >
-                <XIcon size={16} />
-              </button>
-            </>
-          ) : (
-            <button
-              className="edit-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-            >
-              <Edit2Icon size={16} />
-            </button>
-          )}
           <button
             className="delete-button"
             onClick={(e) => {
@@ -94,7 +77,21 @@ function ItemAccordion({ label, children, isActive, onShow, onDelete, onEdit }) 
         className="accordion-content"
         style={{ display: isActive ? "block" : "none" }}
       >
-        {children}
+        {isEditingContent ? (
+          <div className="edit-content">
+            {/* Render editable version of children */}
+            {typeof children === "function"
+              ? children(true, () => setIsEditingContent(false))
+              : children}
+          </div>
+        ) : (
+          <div className="view-content">
+            {/* Render view version of children */}
+            {typeof children === "function"
+              ? children(false, () => setIsEditingContent(true))
+              : children}
+          </div>
+        )}
       </div>
     </div>
   );

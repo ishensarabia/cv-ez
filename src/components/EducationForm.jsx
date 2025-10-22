@@ -1,10 +1,12 @@
 import { useState } from "react";
 import FormAccordion from "./FormAccordion";
+import ItemAccordion from "./ItemAccordion";
 import Input from "./Input";
 import TextCanvas from "./TextCanvas";
-import { Book } from "lucide-react";
+import { Book, Edit3Icon } from "lucide-react";
 
-const initialcurrentEducation = {
+const initialCurrentEducation = {
+  id: Date.now(),
   institution: "",
   degree: "",
   fieldOfStudy: "",
@@ -15,9 +17,26 @@ const initialcurrentEducation = {
 
 function EducationForm({ data, setData, isActive, onShow }) {
   const [currentEducation, setcurrentEducation] = useState(
-    initialcurrentEducation
+    initialCurrentEducation
   );
+  const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
+
+  const [EditingIndex, setEditingIndex] = useState(null);
+  const [EditingFields, setEditingFields] = useState(initialCurrentEducation);
+
   const [errors, setErrors] = useState({});
+
+  function startEdit(index) {
+    setEditingIndex(index);
+    setEditingFields({ ...data[index] });
+  }
+
+  function handleFieldChange(field, value) {
+    setEditingFields((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
 
   function handleChange(field) {
     return function (e) {
@@ -43,6 +62,9 @@ function EducationForm({ data, setData, isActive, onShow }) {
     if (!education.startDate) {
       newErrors.startDate = "Start date is required";
     }
+    if (!education.description.trim()) {
+      newErrors.description = "Description is required";
+    }
     return newErrors;
   }
 
@@ -59,7 +81,7 @@ function EducationForm({ data, setData, isActive, onShow }) {
 
     // If no errors, you can proceed to add the education entry
     setData([...data, { ...currentEducation, id: Date.now() }]);
-    setcurrentEducation(initialcurrentEducation);
+    setcurrentEducation(initialCurrentEducation);
     setErrors({});
   }
 
@@ -88,14 +110,6 @@ function EducationForm({ data, setData, isActive, onShow }) {
           required
         />
         <Input
-          label="Field of Study"
-          type="text"
-          value={currentEducation.fieldOfStudy}
-          onChange={handleChange("fieldOfStudy")}
-          error={errors.fieldOfStudy}
-          required
-        />
-        <Input
           label="Start Date"
           type="date"
           value={currentEducation.startDate}
@@ -109,7 +123,6 @@ function EducationForm({ data, setData, isActive, onShow }) {
           value={currentEducation.endDate}
           onChange={handleChange("endDate")}
           error={errors.endDate}
-          required
         />
         <TextCanvas
           label="Description"
@@ -123,6 +136,140 @@ function EducationForm({ data, setData, isActive, onShow }) {
           Add Education
         </button>
       </form>
+
+      {data.length > 0 && (
+        <div className="education-list">
+          {data.map((education, index) => (
+            <ItemAccordion
+              key={education.id || index}
+              label={`${education.degree} at ${education.institution}`}
+              isActive={activeExperienceIndex === index}
+              onShow={() =>
+                setActiveExperienceIndex(
+                  index === activeExperienceIndex ? null : index
+                )
+              }
+              onEdit={() => {
+                startEdit(index);
+              }}
+              onDelete={() => {
+                const newData = data.filter((_, i) => i !== index);
+                setData(newData);
+                if (activeExperienceIndex === index || newData.length === 0) {
+                  setActiveExperienceIndex(null);
+                }
+                else if (activeExperienceIndex > index) {
+                  setActiveExperienceIndex(activeExperienceIndex - 1);
+                }
+              }}
+            >
+              {(isEditing, toggleEdit) =>
+                isEditing ? (
+                  <form
+                    className="edit-education-form"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const newData = [...data];
+                      newData[EditingIndex] = { ...EditingFields };
+                      setData(newData);
+                      setEditingIndex(null);
+                    }}
+                  >
+                    <Input
+                      label="Institution"
+                      type="text"
+                      value={EditingFields.institution}
+                      onChange={(e) =>
+                        handleFieldChange("institution", e.target.value)
+                      }
+                      required
+                    />
+                    <Input
+                      label="Degree"
+                      type="text"
+                      value={EditingFields.degree}
+                      onChange={(e) =>
+                        handleFieldChange("degree", e.target.value)
+                      }
+                      required
+                    />
+                    <Input
+                      label="Start Date"
+                      type="date"
+                      value={EditingFields.startDate}
+                      onChange={(e) =>
+                        handleFieldChange("startDate", e.target.value)
+                      }
+                      required
+                    />
+                    <Input
+                      label="End Date"
+                      type="date"
+                      value={EditingFields.endDate}
+                      onChange={(e) =>
+                        handleFieldChange("endDate", e.target.value)
+                      }
+                    />
+                    <TextCanvas
+                      label="Description"
+                      value={EditingFields.description}
+                      onChange={(e) =>
+                        handleFieldChange("description", e.target.value)
+                      }
+                      required
+                    />
+                    <div className="form-buttons">
+                      <button
+                        type="button"
+                        className="cancel-button"
+                        onClick={() => {
+                          startEdit(index);
+                          toggleEdit();
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="save-button"
+                        onClick={toggleEdit}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="education-details">
+                    <p>
+                      <strong>Institution:</strong> {education.institution}
+                    </p>
+                    <p>
+                      <strong>Degree:</strong> {education.degree}
+                    </p>
+                    <p>
+                      <strong>Duration:</strong> {education.startDate} to{" "}
+                      {education.endDate || "Present"}
+                    </p>
+                    <p>
+                      <strong>Description:</strong> {education.description}
+                    </p>
+                    <button
+                      className="edit-button"
+                      onClick={() => {
+                        startEdit(index);
+                        toggleEdit();
+                      }}
+                    >
+                      <Edit3Icon size={16} />
+                      Edit
+                    </button>
+                  </div>
+                )
+              }
+            </ItemAccordion>
+          ))}
+        </div>
+      )}
     </FormAccordion>
   );
 }
