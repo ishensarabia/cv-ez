@@ -1,4 +1,4 @@
-function Input({ value, label, type, onChange, error, required }) {
+function Input({ value, label, type, onChange, error, required, placeholder }) {
   return (
     <div className={`input-label ${error ? "has-error" : ""}`}>
       {error && <span className="error-message">{error}</span>}
@@ -14,6 +14,7 @@ function Input({ value, label, type, onChange, error, required }) {
         onChange={onChange}
         required={required}
         className={error ? "error" : ""}
+        placeholder={placeholder}
       />
     </div>
   );
